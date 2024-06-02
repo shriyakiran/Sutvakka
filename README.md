@@ -3,4 +3,4 @@ The home.html is the home page, telling user about Sutvakka.
 The index2.html is for uploading an image and for prediction.
 app.py connects all of them. 
 This website is a flask application.
-dataset link is 
+dataset link is https://drive.google.com/drive/folders/1t__Zc9jKdl4aCI6-amD2kBDvVh1jNj1E
