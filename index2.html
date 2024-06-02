@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #fileInput {
+            display: block;
+            margin: 0 auto 20px;
+        }
+        #imageCanvas {
+            display: block;
+            margin: 0 auto 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #result {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #predictBtn, #getCureBtn, #feedbackBtn {
+            display: block;
+            margin: 0 auto 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #getCureBtn:hover, #feedbackBtn:hover {
+            background-color: #0056b3;
+        }
+        #predictBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="imageCanvas" width="300" height="300"></canvas>
+    <div id="result"></div>
+    <button id="predictBtn">Predict Disease</button> <!-- Styled predict button -->
+    <button id="getCureBtn" style="display: none;">Get Cure</button>
+    <button id="feedbackBtn">Feedback</button>
+
+    <script>
+        $(document).ready(function() {
+            // Function to show uploaded image on canvas
+            function showImage(input) {
+                var file = input.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var canvas = document.getElementById("imageCanvas");
+                        var ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+
+            // Event listener for file input change
+            $("#fileInput").change(function() {
+                showImage(this);
+                $('#getCureBtn').hide(); // Hide cure button when uploading a new image
+            });
+
+            // Function to predict disease
+            $("#predictBtn").click(function() {
+                var fileInput = document.getElementById('fileInput');
+                var file = fileInput.files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        $('#result').html('<p>Predicted Disease: ' + response.class + '</p><p>Probability: ' + response.probability + '</p>');
+                        $('#getCureBtn').show(); // Show cure button after prediction
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            // Function to get cure for predicted disease
+            $("#getCureBtn").click(function() {
+                var predictedDisease = $('#result p:first').text().split(': ')[1];
+                $.ajax({
+                    url: '/cure/' + predictedDisease,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#result').append('<p>Cure: ' + response.cure + '</p>'); // Update HTML content with cure
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            // Redirect to feedback page
+            $("#feedbackBtn").click(function() {
+                window.location.href = "/feedback";
+            });
+        });
+    </script>
+</body>
+</html>
